@@ -3,9 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-.ppk
-.pem
-
+*.ppk
+*.pem
+/key
 # C extensions
 *.so
 
