@@ -9,6 +9,12 @@ __pycache__/
 # C extensions
 *.so
 
+bert_model_IE/
+bert_model_FT/
+bert_model_JP/
+bert_model_NS/
+archive/
+
 # Distribution / packaging
 .Python
 build/
