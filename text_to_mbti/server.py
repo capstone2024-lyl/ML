@@ -28,7 +28,7 @@ def encode_texts(texts, tokenizer, max_length=512):
     )
     return encoded['input_ids'], encoded['attention_mask']
 
-@app.route('/predict_mbti', methods=['POST'])
+@app.route('/api/v1/chat/predict_mbti', methods=['POST'])
 def predict_mbti():
     
     try:
@@ -42,7 +42,7 @@ def predict_mbti():
         
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"Using device: {device}")
-        
+
         original_text = file.read().decode('utf-8')
         processed_text = process_text(original_text)
 
