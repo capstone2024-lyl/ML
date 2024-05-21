@@ -11,10 +11,6 @@ __pycache__/
 
 /image_labeling/dataset/
 
-text_to_mbti/bert_model_IE/
-text_to_mbti/bert_model_FT/
-text_to_mbti/bert_model_JP/
-text_to_mbti/bert_model_NS/
 text_to_mbti/archive/
 
 # Distribution / packaging
