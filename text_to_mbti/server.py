@@ -85,7 +85,7 @@ def predict_mbti():
                 probabilities["decision"] = int(predicted_probs[1] * 100)  # T의 확률
             elif personality_type == 'JP':
                 probabilities["lifeStyle"] = int(predicted_probs[1] * 100)  # P의 확률
-
+        
         return jsonify(probabilities)
 
     except Exception as e:

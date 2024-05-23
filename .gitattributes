@@ -1,4 +1,0 @@
-text_to_mbti/bert_model_IE/pytorch_model.bin filter=lfs diff=lfs merge=lfs -text
-text_to_mbti/bert_model_FT/pytorch_model.bin filter=lfs diff=lfs merge=lfs -text
-text_to_mbti/bert_model_JP/pytorch_model.bin filter=lfs diff=lfs merge=lfs -text
-text_to_mbti/bert_model_NS/pytorch_model.bin filter=lfs diff=lfs merge=lfs -text
