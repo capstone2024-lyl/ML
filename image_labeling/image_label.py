@@ -1,9 +1,13 @@
 import numpy as np
 import tensorflow as tf
-from pycocotools.coco import COCO
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.optimizers import Adam
+from kerastuner import HyperModel, RandomSearch
 import cv2
 import os
-from collections import defaultdict
+from pycocotools.coco import COCO
 
 # COCO 데이터셋 경로
 dataDir = './image_labeling/dataset/train2017/train2017'
@@ -98,33 +102,51 @@ print("Loading COCO dataset...")
 X, y = load_coco_dataset(coco, dataDir)
 print(f"COCO dataset loaded with {len(X)} samples.")
 
-# MobileNetV2 모델 정의 및 학습
-from tensorflow.keras.applications import MobileNetV2
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
-from tensorflow.keras.optimizers import Adam
+# HyperModel 클래스 정의
+class MobileNetV2HyperModel(HyperModel):
+    def build(self, hp):
+        base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(IMG_SIZE, IMG_SIZE, 3))
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        
+        # Dense 레이어 추가
+        for i in range(hp.Int('num_layers', 1, 3)):
+            x = Dense(units=hp.Int('units_' + str(i), min_value=32, max_value=256, step=32), activation='relu')(x)
+        
+        predictions = Dense(8, activation='sigmoid')(x)
+        
+        model = Model(inputs=base_model.input, outputs=predictions)
+        
+        for layer in base_model.layers:
+            layer.trainable = False
+        
+        model.compile(
+            optimizer=Adam(learning_rate=hp.Float('lr', 1e-4, 1e-2, sampling='LOG')),
+            loss='binary_crossentropy',
+            metrics=['accuracy']
+        )
+        
+        return model
 
-# MobileNetV2 모델 불러오기 (사전 학습된 가중치 사용)
-base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(IMG_SIZE, IMG_SIZE, 3))
+hypermodel = MobileNetV2HyperModel()
 
-# 커스텀 출력 레이어 추가
-x = base_model.output
-x = GlobalAveragePooling2D()(x)
-predictions = Dense(8, activation='sigmoid')(x)  # 자연, 인물, 동물, 교통 수단, 가전 제품, 음식, 가구, 기타
+# Keras Tuner 설정
+tuner = RandomSearch(
+    hypermodel,
+    objective='val_accuracy',
+    max_trials=10,
+    executions_per_trial=2,
+    directory='tuner_results',
+    project_name='coco_mobilenet'
+)
 
-# 모델 정의
-model = Model(inputs=base_model.input, outputs=predictions)
+# 튜닝 실행
+tuner.search(X, y, epochs=50, validation_split=0.2)
 
-# 일부 레이어를 고정하여 학습하지 않도록 설정
-for layer in base_model.layers:
-    layer.trainable = False
+# 최적 모델 가져오기
+best_model = tuner.get_best_models(num_models=1)[0]
 
-# 모델 컴파일
-model.compile(optimizer=Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
+# 최적 모델 저장
+best_model.save('./image_labeling/model/best_mobile_net.h5')
 
-print("Starting model training...")
-# 모델 학습 (배치 크기를 줄여 메모리 사용량을 낮춥니다)
-model.fit(X, y, epochs=30, batch_size=16, validation_split=0.2)
-print("Model training completed.")
-
-model.save('./image_labeling/model/mobile_net.h5')
+print("Hyperparameter tuning completed and best model saved.")

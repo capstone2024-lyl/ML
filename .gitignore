@@ -16,6 +16,8 @@ __pycache__/
 
 
 /image_labeling/dataset/
+/image_labeling/tuner_results/
+/image_labeling/model/
 
 text_to_mbti/archive/
 
