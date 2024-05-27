@@ -14,6 +14,7 @@ __pycache__/
 /text_to_mbti/bert_model_JP/
 /text_to_mbti/bert_model_NS/
 
+/tuner_results/
 
 /image_labeling/dataset/
 /image_labeling/tuner_results/
