@@ -5,10 +5,12 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import Adam
 from kerastuner import HyperModel, RandomSearch
+from tensorflow.keras.callbacks import EarlyStopping
+
+
 import cv2
 import os
 from pycocotools.coco import COCO
-from tensorflow.keras.callbacks import EarlyStopping
 
 # COCO 데이터셋 경로
 dataDir = './image_labeling/dataset/train2017/train2017'
@@ -106,15 +108,20 @@ def create_tf_dataset(coco, dataDir, batch_size=32):
 
 # 데이터셋 생성
 batch_size = 32
-full_dataset = create_tf_dataset(coco, dataDir, batch_size)
+print('dataset load...')
+dataset = create_tf_dataset(coco, dataDir, batch_size)
 
+
+print('dataset split...')
 # 데이터셋을 학습용과 검증용으로 분리
 validation_split = 0.2
-dataset_size = sum(1 for _ in full_dataset)
+dataset_size = sum(1 for _ in dataset)
 val_size = int(dataset_size * validation_split)
 
-train_dataset = full_dataset.skip(val_size)
-val_dataset = full_dataset.take(val_size)
+train_dataset = dataset.skip(val_size)
+val_dataset = dataset.take(val_size)
+
+print('split succeed')
 
 # MobileNetV2 모델 정의
 class MobileNetV2HyperModel(HyperModel):
@@ -125,8 +132,7 @@ class MobileNetV2HyperModel(HyperModel):
         
         # Dense 레이어 추가
         for i in range(hp.Int('num_layers', 1, 3)):
-            x = Dense(units=hp.Int('units_' + str(i), min_value=32, max_value=256, step=32), 
-                      activation='relu')(x)
+            x = Dense(units=hp.Int('units_' + str(i), min_value=32, max_value=256, step=32), activation='relu')(x)
         
         predictions = Dense(8, activation='sigmoid')(x)
         
@@ -154,6 +160,7 @@ tuner = RandomSearch(
     directory='tuner_results',
     project_name='coco_mobilenet'
 )
+
 
 # EarlyStopping 콜백 설정
 early_stopping = EarlyStopping(

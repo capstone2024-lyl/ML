@@ -60,7 +60,7 @@ def predict_and_display(model, img_path):
     plt.show()
 
 # 테스트 이미지 경로
-test_img_path = './image_labeling/dataset/train2017/train2017/000000000034.jpg'
+test_img_path = './image_labeling/KakaoTalk_20240528_161105027.jpg'
 
 # 예측 및 시각화
 predict_and_display(model, test_img_path)
